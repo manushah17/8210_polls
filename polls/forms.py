@@ -2,7 +2,6 @@ from django import forms
 from .models import Question, Choice
 from django.forms import modelformset_factory
 from django.contrib.auth import authenticate, get_user_model
-from datetimepicker.widgets import DateTimePicker
 
 
 class QuestionForm(forms.ModelForm):
