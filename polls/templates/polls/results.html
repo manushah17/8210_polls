@@ -1,9 +1,31 @@
-<h1>{{ question.question_text }}</h1>
+{% extends 'base.html' %}
 
-<ul>
+
+{% block container %}
+    <h1>Poll Results</h1>
+     <div >
+     <span><h3>{{ question.question_text }}</h3>
+         <a class="nav-link" href="{% url 'polls:detail' question.id %}">Vote again?</a></span>
+    </div>
+
+<div >
+
+<table class="table table-striped table-bordered"">
+        <thead>
+         <th>Choice</th>
+         <th>Vote Count</th>
+        </thead>
+    <tbody>
 {% for choice in question.choice_set.all %}
-    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
-{% endfor %}
-</ul>
 
-<a href="{% url 'polls:detail' question.id %}">Vote again?</a>
+    <tr>
+        <td>{{ choice.choice_text }}</td>
+         <td>{{ choice.votes }}</td>
+    </tr>
+{% endfor %}
+ </tbody>
+    </table>
+
+</div>
+
+{% endblock %}

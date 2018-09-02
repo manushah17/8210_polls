@@ -1,29 +1,28 @@
+
 from django.http import HttpResponse, HttpResponseRedirect
-from django.template import loader
-from django.http import Http404
 from django.urls import reverse
-from django.shortcuts import render, get_object_or_404
-
+from django.shortcuts import render, get_object_or_404, redirect
+from .forms import QuestionModelForm, ChoiceFormset, UserLoginForm
 from .models import Question, Choice
-
-
-
-#def index(request):
- #   latest_question_list = Question.objects.order_by('-pub_date')[:5]
-  #  template = loader.get_template('polls/index.html')
-   # context = {
-    #    'latest_question_list': latest_question_list
-    #}
-    #return HttpResponse(template.render(context, request))
-    #output = ', '.join([q.question_text for q in latest_question_list])
-    #return HttpResponse(output)
-    # return HttpResponse("Hello, world. You're at the polls index.")
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth import authenticate, login, logout
 
 
 def index(request):
-    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    polls = Question.objects.order_by('-pub_date')
+    paginator = Paginator(polls, 3)  # 3 posts in each page
+    page = request.GET.get('page')
+    try:
+        latest_question_list = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer deliver the first page
+        latest_question_list = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range deliver last page of results
+        latest_question_list = paginator.page(paginator.num_pages)
     context = {'latest_question_list': latest_question_list}
-    return render(request, 'polls/index.html', context)
+    return render(request, 'polls/index.html', {'page': page, 'latest_question_list': latest_question_list})
+    #return render(request, 'polls/index.html', context)
 
 
 def detail(request, question_id):
@@ -53,3 +52,48 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+
+
+
+def create_quest_with_choice(request):
+    template_name = 'polls/create_quest_with_choice.html'
+    if request.method == 'GET':
+        questionform = QuestionModelForm(request.GET or None)
+        formset = ChoiceFormset(queryset=Choice.objects.none())
+    elif request.method == 'POST':
+        questionform = QuestionModelForm(request.POST)
+        formset = ChoiceFormset(request.POST)
+        if questionform.is_valid() and formset.is_valid():
+            # first save this book, as its reference will be used in `Author`
+            question = questionform.save(commit=False)
+            question.author = request.user
+            question.save()
+            for form in formset:
+                # so that `book` instance can be attached.
+               # print("choice text ", form.choice_text)
+                choice = form.save(commit=False)
+                choice.question = question
+                choice.save()
+            return redirect('polls:index')
+    return render(request, template_name, {
+        'questionform': questionform,
+        'formset': formset,
+    })
+
+
+def login_view(request):
+    title = "Login"
+    form = UserLoginForm(request.POST or None)
+    if form.is_valid():
+        username = form.cleaned_data.get("username")
+        password = form.cleaned_data.get("password")
+        user = authenticate(username=username, password=password)
+        login(request, user)
+        return redirect('polls:index')
+    return render(request, 'registration/login_form.html', {'form': form, 'title': title})
+
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('polls:index')

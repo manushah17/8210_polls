@@ -1,18 +1,20 @@
 import datetime
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('date published')
+    pub_date = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(User, default=2, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.question_text
 
-    def was_published_recently(self):
-        now = timezone.now()
-        return now - datetime.timedelta(days=1) <= self.pub_date <= now
 
 
 class Choice(models.Model):
