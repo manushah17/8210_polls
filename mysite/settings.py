@@ -30,7 +30,7 @@ ALLOWED_HOSTS = ['127.0.0.1', 'manushah.pythonanywhere.com']
 
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
-LOGIN_REDIRECT_URL = '/index'
+LOGIN_REDIRECT_URL = '/'
 
 # Application definition
 
@@ -124,3 +124,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
